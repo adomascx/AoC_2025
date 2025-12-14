@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "esbuild": "^0.27.1",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "build": "esbuild script.ts --bundle --outfile=script.js"
+  }
+}
