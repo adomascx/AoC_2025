@@ -1,5 +1,2 @@
 # text
 *.txt
-
-# executable files (C++ implementation)
-*.exe
