@@ -1,2 +1,5 @@
 # build remnants
 script.js
+
+# backup files
+*.bak
