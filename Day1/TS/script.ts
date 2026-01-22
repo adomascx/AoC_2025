@@ -1,9 +1,19 @@
-const args = Deno.args;
+import { parseArgs } from "@std/cli/parse-args";
+import { error } from "node:console";
 
+const inputFile: string = parseArgs(Deno.args).file;
 
+type dialState = {
+    currentPosition: number, // Track the current position of the dial (from 0 to 99; default is middle = 50)
+    zeroCounter: number // Counter for how many times the dial passed through 0
+}
 
-function processInput(path: string = "../input.txt") {
-  const inputString: string = Deno.readTextFileSync(path).trim();
+export function processInput(path: string = "../input.txt"): number[] {
+    const inputString: string = Deno.readTextFileSync(path).trim();
+    if (inputString.length == 0) {
+        error("Input file is empty");
+        return [];
+    }
 
     // Array of all actions that will be completed
     const allActions: number[] = [];
@@ -16,42 +26,37 @@ function processInput(path: string = "../input.txt") {
     return allActions;
 }
 
-function evalAction(action: number) {
+export function evalAction(action: number, state: dialState): dialState {
     // Move the dial (direction depends on sign of thisAction)
-    currentPosition += action;
+    let newPosition = state.currentPosition + action;
+    let newZeroCounter = state.zeroCounter;
 
     // If the dial is left pointing at 0, increment zeroCounter
-    if (currentPosition % 100 == 0) { zeroCounter++; }
+    // if (newPosition % 100 == 0) { newZeroCounter++; }
 
     // God help whoever attempts to understand this
     // Count how many times dial passed *through* 0, add that many to zeroCounter
 
     // Conditionals for when dial is "overflowing, isn't currently at 0 and wasn't at 0 last action"
-    const isOverflowing = currentPosition > 99 || currentPosition < 0;
-    const isAtZeroNow = currentPosition % 100 === 0;
-    const wasAtZeroBeforeAction = (currentPosition - action) === 0;
-
-    if (isOverflowing && !isAtZeroNow && !wasAtZeroBeforeAction) {
+    if (newPosition > 99 || newPosition <= 0) {
         // increment zeroCounter (C++ style int division)
-        const x: number = Math.trunc(currentPosition / 100);
+        const x: number = Math.trunc(newPosition / 100);
         // i don't know.
-        zeroCounter += (x == 0 ? 1 : x);
+        newZeroCounter += (x == 0 ? 1 : Math.abs(x));
     }
 
     // "fix" position back to range (0, 99)
-    currentPosition = (currentPosition % 100 + 100) % 100;
+    newPosition = (newPosition % 100 + 100) % 100;
+
+    return { currentPosition: newPosition, zeroCounter: newZeroCounter };
 }
 
 const actions = processInput(inputFile);
 
-// Track the current position of the dial (from 0 to 99; default is middle = 50)
-let currentPosition: number = 50;
-
-// Counter for how many times the dial passed through 0
-let zeroCounter: number = 0;
+const state: dialState = { currentPosition: 50, zeroCounter: 0 }
 
 actions.forEach(thisAction => {
-    evalAction(thisAction);
+    evalAction(thisAction, state);
 });
 
-console.log("The result is:", zeroCounter);
+console.log("The result is:", state.zeroCounter);

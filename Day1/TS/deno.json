@@ -1,10 +1,11 @@
 {
   "tasks": {
-    "build": "esbuild script.ts --bundle --outfile=script.js --platform=node --format=esm",
-    "run": "deno run --allow-read --allow-write script.ts",
-    "lint": "deno lint script.ts"
+    "test": "deno test script.ts",
+    "lint": "deno lint script.ts",
+    "run": "deno run --allow-read --allow-write script.ts --file=../input.txt"
   },
   "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.17",
     "@std/cli": "jsr:@std/cli@^1.0.25",
     "esbuild": "npm:esbuild@0.27.1"
   }
