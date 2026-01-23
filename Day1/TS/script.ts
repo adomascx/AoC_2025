@@ -3,7 +3,7 @@ import { error } from "node:console";
 
 const inputFile: string = parseArgs(Deno.args).file;
 
-type dialState = {
+export type dialState = {
     currentPosition: number, // Track the current position of the dial (from 0 to 99; default is middle = 50)
     zeroCounter: number // Counter for how many times the dial passed through 0
 }
@@ -31,18 +31,17 @@ export function evalAction(action: number, state: dialState): dialState {
     let newPosition = state.currentPosition + action;
     let newZeroCounter = state.zeroCounter;
 
-    // If the dial is left pointing at 0, increment zeroCounter
-    // if (newPosition % 100 == 0) { newZeroCounter++; }
-
-    // God help whoever attempts to understand this
-    // Count how many times dial passed *through* 0, add that many to zeroCounter
-
-    // Conditionals for when dial is "overflowing, isn't currently at 0 and wasn't at 0 last action"
-    if (newPosition > 99 || newPosition <= 0) {
+    // handle positive overflow
+    if (newPosition > 99) {
         // increment zeroCounter (C++ style int division)
-        const x: number = Math.trunc(newPosition / 100);
-        // i don't know.
-        newZeroCounter += (x == 0 ? 1 : Math.abs(x));
+        newZeroCounter += Math.trunc(newPosition / 100);
+    }
+
+    // handle negative overflow
+    if (newPosition <= 0) {
+        // same as before, but reverse sign (-150 => 150)
+        // also, conditional +1 (only if the dial wasn't at 0 previously)
+        newZeroCounter += Math.trunc((newPosition * -1) / 100) + (state.currentPosition == 0 ? 0 : 1);
     }
 
     // "fix" position back to range (0, 99)
@@ -51,12 +50,13 @@ export function evalAction(action: number, state: dialState): dialState {
     return { currentPosition: newPosition, zeroCounter: newZeroCounter };
 }
 
-const actions = processInput(inputFile);
 
-const state: dialState = { currentPosition: 50, zeroCounter: 0 }
+const actions: number[] = processInput(inputFile);
+
+let state: dialState = { currentPosition: 50, zeroCounter: 0 }
 
 actions.forEach(thisAction => {
-    evalAction(thisAction, state);
+    state = evalAction(thisAction, state);
 });
 
 console.log("The result is:", state.zeroCounter);
