@@ -1,6 +1,38 @@
 import { assertEquals } from "@std/assert";
-import { getInvalidIdSum, findInvalidIds, processFileInput, type IdRange } from "./main.ts";
+import { getFactors, sliceIntoSubstrings, processFileInput, findInvalidIds, getInvalidIdSum, main, type IdRange } from "./main.ts";
 
+// getFactors
+
+Deno.test("getFactors finds correct factors for small numbers", () => {
+  assertEquals(getFactors(12), [1, 2, 3, 4, 6, 12]);
+})
+
+Deno.test("getFactors handles edge cases", () => {
+  assertEquals(getFactors(1), [1]);
+})
+
+Deno.test("getFactors handles large numbers", () => {
+  assertEquals(getFactors(123456), [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 192, 643, 1286, 1929, 2572, 3858, 5144, 7716, 10288, 15432, 20576, 30864, 41152, 61728, 123456]);
+})
+
+// sliceIntoSubstrings
+Deno.test("sliceIntoSubstrings divides string into equal parts", () => {
+  assertEquals(sliceIntoSubstrings("abcdef", 2), ["abc", "def"]);
+});
+
+Deno.test("sliceIntoSubstrings handles single substring", () => {
+  assertEquals(sliceIntoSubstrings("hello", 1), ["hello"]);
+});
+
+Deno.test("sliceIntoSubstrings divides into three parts", () => {
+  assertEquals(sliceIntoSubstrings("123456789", 3), ["123", "456", "789"]);
+});
+
+Deno.test("sliceIntoSubstrings handles empty string", () => {
+  assertEquals(sliceIntoSubstrings("", 1), [""]);
+});
+
+// processFileInput
 Deno.test("processFileInput sorts unordered ranges", () => {
   const tempFilePath = Deno.makeTempFileSync();
   try {
@@ -42,6 +74,7 @@ Deno.test("processFileInput handles single range", () => {
   }
 });
 
+// findInvalidIds
 Deno.test("findInvalidIds returns empty when no even-length ids", () => {
   const range: IdRange = { lowerBound: 1, upperBound: 10 };
   assertEquals(findInvalidIds(range), []);
@@ -57,6 +90,14 @@ Deno.test("findInvalidIds ignores upper bound and captures four-digit", () => {
   assertEquals(findInvalidIds(range), [1010]);
 });
 
+Deno.test("findInvalidIds returns correct value for example file", () => {
+  const idRanges: IdRange[] = processFileInput("input1.test.txt");
+  const invalidIds: number[] = idRanges.flatMap(findInvalidIds);
+
+  assertEquals(invalidIds, [11, 22, 99, 111, 999, 1010, 1188511885, 222222, 446446, 38593859, 565656, 824824824, 2121212121].sort((a, b) => a - b));
+})
+
+// getInvalidSum
 Deno.test("getInvalidIdSum returns zero for empty ranges", () => {
   assertEquals(getInvalidIdSum([]), 0);
 });
@@ -76,3 +117,7 @@ Deno.test("getInvalidIdSum returns zero when no invalid ids found", () => {
   ];
   assertEquals(getInvalidIdSum(ranges), 0);
 });
+
+Deno.test("main returns correct value for example file", () => {
+  assertEquals(main("input1.test.txt"), 4174379265);
+})

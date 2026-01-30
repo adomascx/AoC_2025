@@ -5,15 +5,47 @@ export type IdRange = {
   upperBound: number
 }
 
+export function getFactors(num: number): number[] {
+    const factors: number[] = [];
+    const limit = Math.sqrt(num);
+
+    for (let i = 1; i <= limit; i++) {
+      
+        if (num % i === 0) {
+            factors.push(i);
+            
+            // If the divisors are distinct, add the pair
+            if (i !== num / i) {
+                factors.push(num / i);
+            }
+        }
+    }
+
+    return factors.sort((a, b) => a - b);
+}
+
+export function sliceIntoSubstrings(inputString: string, numOfSubstrings: number): string[] {
+  const substrings: string[] = [];
+  const substringLength = inputString.length / numOfSubstrings;
+
+  for (let i = 0; i < numOfSubstrings; i++) {
+    const start = i * substringLength;
+    const end = start + substringLength;
+    substrings.push(inputString.slice(start, end));
+  }
+
+  return substrings;
+}
+
 export function processFileInput(filePath: string): IdRange[] {
   const inputString: string = Deno.readTextFileSync(filePath); // first, input text file into a singular string
 
   const structuredRanges: IdRange[] = [];
 
   // Split 'input ranges string' into numbers, then push to an array
-  inputString.split(',').forEach(element => {
+  inputString.split(',').forEach(rangeElement => {
 
-    const parts = element.split('-');
+    const parts = rangeElement.split('-');
     const thisRange: IdRange = {
       lowerBound: parseInt(parts[0]),
       upperBound: parseInt(parts[1])
@@ -31,19 +63,26 @@ export function processFileInput(filePath: string): IdRange[] {
 export function findInvalidIds(range: IdRange): number[] {
   const foundIds: number[] = [];
 
-  for (let i: number = range.lowerBound; i < range.upperBound; i++) {
-    // main computation is string-based
-    const string: string = i.toString();
+  for (let id: number = range.lowerBound; id < range.upperBound; id++) {
 
-    // split the string in two equal parts and compare them
-    // if they're the same, we have an invalid ID
-    if (string.length % 2 == 0) {
+    const idString: string = id.toString();
+    const factors: number[] = getFactors(idString.length); // using factors for less comparisons later on
 
-      const middle = string.length / 2;
-      if (string.slice(0, middle) == string.slice(middle)) {
-        foundIds.push(i);
+    for (const factor of factors) {
+      const substrings = sliceIntoSubstrings(idString, factor);
+      if (new Set(substrings).size === 1 && substrings.length > 1) {
+        foundIds.push(id);
       }
     }
+
+    // v1 implementation
+
+    // if (idString.length % 2 === 0) {
+    //   const middle = idString.length / 2;
+    //   if (idString.slice(0, middle) === idString.slice(middle)) {
+    //     foundIds.push(id);
+    //   }
+    // }
   }
 
   return foundIds;
@@ -65,12 +104,16 @@ export function getInvalidIdSum(structuredRanges: IdRange[]): number {
   return invalidIdSum;
 }
 
-function main() {
+export function main(paramFilePath: string = "input.txt") {
   // optional command line functionality
-  const inputFilePath: string = parseArgs(Deno.args).file || "input.txt";
-  
-  const Ids: IdRange[] = processFileInput(inputFilePath);
-  console.log(getInvalidIdSum(Ids));
+  const inputFile: string = parseArgs(Deno.args).file || paramFilePath;
+
+  const Ids: IdRange[] = processFileInput(inputFile);
+
+  const finalSum: number = getInvalidIdSum(Ids);
+
+  console.log(finalSum);
+  return finalSum;
 }
 
 main();
