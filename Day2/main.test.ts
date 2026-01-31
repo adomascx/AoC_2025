@@ -74,6 +74,23 @@ Deno.test("processFileInput handles single range", () => {
   }
 });
 
+Deno.test("processFileInput parses example file correctly", () => {
+  const ranges = processFileInput("input1.test.txt");
+  assertEquals(ranges, [
+    { lowerBound: 11, upperBound: 22 },
+    { lowerBound: 95, upperBound: 115 },
+    { lowerBound: 998, upperBound: 1012 },
+    { lowerBound: 222220, upperBound: 222224 },
+    { lowerBound: 446443, upperBound: 446449 },
+    { lowerBound: 565653, upperBound: 565659 },
+    { lowerBound: 1698522, upperBound: 1698528 },
+    { lowerBound: 38593856, upperBound: 38593862 },
+    { lowerBound: 824824821, upperBound: 824824827 },
+    { lowerBound: 1188511880, upperBound: 1188511890 },
+    { lowerBound: 2121212118, upperBound: 2121212124 },
+  ]);
+});
+
 // findInvalidIds
 Deno.test("findInvalidIds returns empty when no even-length ids", () => {
   const range: IdRange = { lowerBound: 1, upperBound: 10 };
@@ -94,7 +111,7 @@ Deno.test("findInvalidIds returns correct value for example file", () => {
   const idRanges: IdRange[] = processFileInput("input1.test.txt");
   const invalidIds: number[] = idRanges.flatMap(findInvalidIds);
 
-  assertEquals(invalidIds, [11, 22, 99, 111, 999, 1010, 1188511885, 222222, 446446, 38593859, 565656, 824824824, 2121212121].sort((a, b) => a - b));
+  assertEquals(invalidIds, [11, 22, 99, 111, 999, 1010, 222222, 446446, 565656, 38593859, 824824824, 1188511885, 2121212121]);
 })
 
 // getInvalidSum
@@ -116,6 +133,11 @@ Deno.test("getInvalidIdSum returns zero when no invalid ids found", () => {
     { lowerBound: 1012, upperBound: 1015 },
   ];
   assertEquals(getInvalidIdSum(ranges), 0);
+});
+
+Deno.test("getInvalidIdSum returns correct value for example file", () => {
+  const idRanges: IdRange[] = processFileInput("input1.test.txt");
+  assertEquals(getInvalidIdSum(idRanges), 4174379265);
 });
 
 Deno.test("main returns correct value for example file", () => {
