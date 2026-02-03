@@ -3,6 +3,13 @@ export type coordinates = {
   y: number
 }
 
+/**
+ * Process and encode the puzzle input file into a boolean coordinate matrix
+ *
+ * @export
+ * @param {string} [inputFile="input.txt"] Full path to the input file
+ * @returns {boolean[][]} Input data encoded as a boolean coordinate matrix
+ */
 export function processInput(inputFile: string = "input.txt"): boolean[][] {
   return Deno.readTextFileSync(inputFile)
     .split('\r\n') // split by newlines
@@ -12,6 +19,14 @@ export function processInput(inputFile: string = "input.txt"): boolean[][] {
     });
 }
 
+/**
+ * Counts how many neighbours of a given point aren't empty
+ *
+ * @export
+ * @param {boolean[][]} rollMatrix Coordinate matrix of boolean points
+ * @param {coordinates} coords Coordinates of the point whose neighbours we check
+ * @returns {number} Number of non-empty neighbours
+ */
 export function countNeighbours(rollMatrix: boolean[][], coords: coordinates): number {
   let neighbourCounter: number = 0;
   const thisX = coords.x;
@@ -31,7 +46,7 @@ export function countNeighbours(rollMatrix: boolean[][], coords: coordinates): n
 
   for (const neighbour of neighboursToCheck) {
     // prevent exception throw due to OOB access
-    if (neighbour.x < 0 || neighbour.x >= rollMatrix.length || neighbour.y < 0 || neighbour.y >= rollMatrix.length)
+    if (neighbour.x < 0 || neighbour.x >= rollMatrix.length || neighbour.y < 0 || neighbour.y >= rollMatrix[neighbour.x].length)
       continue;
 
     // check if this neighbour exists, if so increment counter
@@ -41,19 +56,29 @@ export function countNeighbours(rollMatrix: boolean[][], coords: coordinates): n
   return neighbourCounter;
 }
 
+/**
+ * Finds all accessible rolls, i.e. points in a matrix that have < 4 non-empty neighbours
+ *
+ * @export
+ * @param {boolean[][]} rollMatrix Coordinate matrix of boolean points
+ * @returns {coordinates[]} Coordinates of each accessible point
+ */
 export function findAccessibleRolls(rollMatrix: boolean[][]): coordinates[] {
   const coordsArray: coordinates[] = [];
 
+  // Iterate over elements by Gutenberg principle
   for (let i = 0; i < rollMatrix.length; i++) {
     const row = rollMatrix[i];
 
     for (let j = 0; j < row.length; j++) {
       const element = row[j];
 
+      // preemptively skip the point if it's empty
       if (element === false) {
         continue;
       }
 
+      // count the point's neighbours, if valid push to coordsArray
       const elementCoords: coordinates = { x: i, y: j }
       if (countNeighbours(rollMatrix, elementCoords) < 4)
         coordsArray.push(elementCoords);
@@ -65,5 +90,20 @@ export function findAccessibleRolls(rollMatrix: boolean[][]): coordinates[] {
 
 if (import.meta.main) {
   const rollMatrix: boolean[][] = processInput("input.txt");
-  console.log(findAccessibleRolls(rollMatrix).length);
+  let removedRollCounter = 0;
+  let accessibleRolls: coordinates[];
+
+  do {
+    // find all currently accessible rolls
+    accessibleRolls = findAccessibleRolls(rollMatrix);
+
+    // remove them from the matrix
+    for (const roll of accessibleRolls) {
+      rollMatrix[roll.x][roll.y] = false;
+      removedRollCounter++;
+    }
+  } while (accessibleRolls.length > 0);
+
+  console.log(removedRollCounter);
+
 }
