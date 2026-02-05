@@ -1,29 +1,15 @@
-**/node_modules
-
 # env & secrets
 .env
 .env.*.local
 
-# build artifacts
-dist/
-build/
-coverage/
-.nyc_output/
-.cache/
-.parcel-cache/
-.turbo/
-
-# logs
-npm-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# editor/OS junk
+# editor junk
 .vscode/
-.idea/
-.DS_Store
-Thumbs.db
 
-# text
+# node dependencies
+**/node_modules
+
+# text files
 *.txt
+
+# build output
+*.exe

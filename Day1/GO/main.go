@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"strconv"
@@ -86,7 +87,10 @@ func evalAction(action int, state dialState) (dialState, error) {
 }
 
 func main() {
-	actions, err := parseInput("../input.txt")
+	inputFile := flag.String("file", "../input.txt", "Path to the text file containing input data")
+	flag.Parse()
+
+	actions, err := parseInput(*inputFile)
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
