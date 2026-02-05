@@ -1,7 +1,6 @@
 import { parseArgs } from "@std/cli/parse-args";
 import { error } from "node:console";
 
-const inputFile: string = parseArgs(Deno.args).file;
 
 export type dialState = {
 	currentPosition: number, // Track the current position of the dial (from 0 to 99; default is middle = 50)
@@ -14,15 +13,15 @@ export function processInput(path: string = "../input.txt"): number[] {
 		error("Input file is empty");
 		return [];
 	}
-
+	
 	// Array of all actions that will be completed
 	const allActions: number[] = [];
-
+	
 	inputString.split('\n').forEach(thisActionString => {
 		const thisAction = parseInt(thisActionString.slice(1)) * (thisActionString.charAt(0) === 'R' ? 1 : -1);
 		allActions.push(thisAction);
 	});
-
+	
 	return allActions;
 }
 
@@ -30,7 +29,7 @@ export function evalAction(action: number, state: dialState): dialState {
 	// Move the dial (direction depends on sign of thisAction)
 	let newPosition = state.currentPosition + action;
 	let newZeroCounter = state.zeroCounter;
-
+	
 	// handle positive overflow
 	if (newPosition > 99) {
 		// increment zeroCounter (C++ style int division)
@@ -46,11 +45,13 @@ export function evalAction(action: number, state: dialState): dialState {
 
 	// "fix" position back to range (0, 99)
 	newPosition = (newPosition % 100 + 100) % 100;
-
+	
 	return { currentPosition: newPosition, zeroCounter: newZeroCounter };
 }
 
 if (import.meta.main) {
+
+	const inputFile: string = parseArgs(Deno.args).file;
 	const actions: number[] = processInput(inputFile);
 
 	let state: dialState = { currentPosition: 50, zeroCounter: 0 }
@@ -58,6 +59,6 @@ if (import.meta.main) {
 	actions.forEach(thisAction => {
 		state = evalAction(thisAction, state);
 	});
-
+	
 	console.log("The result is:", state.zeroCounter);
 }
