@@ -2,10 +2,15 @@ package main
 
 import (
 	"bufio"
-	"fmt"
-	"io"
 	"os"
+	"strconv"
+	"strings"
 )
+
+type Problem struct {
+	numbers   []int
+	operation Operation
+}
 
 type Operation int
 
@@ -15,30 +20,38 @@ const (
 	addition
 )
 
-func processInput(inputFile string) ([][]int, []Operation, error) {
+func processInput(inputFile string) ([]Problem, error) {
+
+	// open input file for reading
 	file, err := os.Open(inputFile)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer file.Close()
 
-	reader := bufio.NewReader(file)
+	var problems []Problem
 
-	for {
-		var token string
-		_, err := fmt.Fscan(reader, &token)
-		if err == io.EOF {
-			break
+	scanner := bufio.NewScanner(file)
+
+	// keep an index of which line of the file is currently being read
+	lineIdx := 0
+
+	for scanner.Scan() {
+
+		// read all space-separated values on this line
+		entries := strings.Fields(scanner.Text())
+
+		for i, v := range entries {
+			entryAsInt, _ := strconv.ParseInt(v)
+			problems[i].numbers[lineIdx] = append(problems[i].numbers[lineIdx], entryAsInt)
 		}
-
-		if err != nil {
-			return nil, nil, err
-		}
-
+		lineIdx++
 	}
 
-	return nil, nil, nil
+	return nil, nil
 }
 
 func main() {
+
+	processInput("input.test.txt")
 }
