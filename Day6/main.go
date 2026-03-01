@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -94,13 +95,7 @@ func processInput(inputFile string) ([]Problem, error) {
 	return nil, errors.New("processInput did not terminate at 'operations'")
 }
 
-func main() {
-
-	problems, err := processInput("input.txt")
-	if err != nil {
-		log.Fatalf("could not do processInput():  %v", err)
-	}
-
+func calculatePuzzleAnswer(problems []Problem) int64 {
 	var problemSum int64
 
 	for _, problem := range problems {
@@ -121,6 +116,33 @@ func main() {
 			problemSum += currAnswer
 		}
 	}
+	return problemSum
+}
 
-	fmt.Printf("The answer is: %v", problemSum)
+func main() {
+	inputFile := flag.String("f", "input.txt", "path to the input text file")
+	part := flag.Int("pt", 1, "which part's answer to calculate (1|2)")
+	flag.Parse()
+
+	var answer int64
+
+	switch *part {
+
+	case 1:
+		problems, err := processInput(*inputFile)
+		if err != nil {
+			log.Fatalf("could not do processInput():  %v", err)
+		}
+
+		answer = calculatePuzzleAnswer(problems)
+
+	case 2:
+		fmt.Println("Not implemented yet")
+		answer = 0
+
+	default:
+		log.Fatal("Invalid 'part' chosen. Available options are '1' and '2'")
+	}
+
+	fmt.Printf("The answer to part %v is: %v", *part, answer)
 }
