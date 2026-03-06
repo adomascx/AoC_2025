@@ -25,6 +25,48 @@ const (
 	addition       Operation = true
 )
 
+func transposeInputFile(inputFile string) error {
+	file, err := os.Open(inputFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	var lines []string
+
+	// read whole file into memory
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	// pre-allocate memory for transposed text
+	transposedLines := make([]string, len(lines[0]))
+
+	// transpose into a new strings array
+	for i := 0; i < len(lines)-1; i++ {
+		for j := 0; j < len(lines[0]); j++ {
+			transposedLines[j] += string(lines[i][j])
+		}
+	}
+
+	// create and open new file
+	file, err = os.OpenFile("transposedInput.txt", os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+
+	writer := bufio.NewWriter(file)
+
+	for _, line := range transposedLines {
+		writer.WriteString(line + "\n")
+	}
+	writer.WriteString(lines[len(lines)-1])
+
+	return nil
+}
+
 func parseOperation(inputToken string) (Operation, error) {
 	switch inputToken {
 
@@ -39,7 +81,7 @@ func parseOperation(inputToken string) (Operation, error) {
 	}
 }
 
-func processInput(inputFile string) ([]Problem, error) {
+func readInput(inputFile string) ([]Problem, error) {
 
 	// open input file for reading
 	file, err := os.Open(inputFile)
@@ -92,7 +134,7 @@ func processInput(inputFile string) ([]Problem, error) {
 		lineIdx++
 	}
 
-	return nil, errors.New("processInput did not terminate at 'operations'")
+	return nil, errors.New("readInput did not terminate at 'operations'")
 }
 
 func calculatePuzzleAnswer(problems []Problem) int64 {
@@ -129,19 +171,22 @@ func main() {
 	switch *part {
 
 	case 1:
-		problems, err := processInput(*inputFile)
+		problems, err := readInput(*inputFile)
 		if err != nil {
-			log.Fatalf("could not do processInput():  %v", err)
+			log.Fatalf("could not do readInput():  %v", err)
 		}
 
 		answer = calculatePuzzleAnswer(problems)
 
 	case 2:
-		fmt.Println("Not implemented yet")
+		err := transposeInputFile(*inputFile)
+		if err != nil {
+			log.Fatalf("could not do transposeInputFile(): %v", err)
+		}
 		answer = 0
 
 	default:
-		log.Fatal("Invalid 'part' chosen. Available options are '1' and '2'")
+		log.Fatalf("Invalid 'part' chosen. Available options are '1' and '2'")
 	}
 
 	fmt.Printf("The answer to part %v is: %v", *part, answer)
